@@ -3,56 +3,100 @@
 a simple text based adventure
 """
 
-inventory = ["soap"]
+inventory = []
 
-# print current location and inventory
-def display(s):
-    print(s)
+class Location:
+    "This is a location class"
+    objects = []
 
-    print("Inventory:")
-    for o in inventory:
-        print(o, end='')
-    print('')
+outside_nectars = Location()
+inside_nectars = Location()
+church_and_main = Location()
+city_hall = Location()
 
-# only accept a specific input
-def only_accept( s ):
-    t = ""
-    while t != s:
-        t = input(':')
-    print('')
+outside_nectars.title = "Outside Nectars. There are gravy fries for sale"
+outside_nectars.inside = inside_nectars
+outside_nectars.west = church_and_main
+def buy_gravy_fries():
+    if 'money' in inventory:
+        print("You purchase an order of gravey fries")
+        inventory.remove('money')
+        inventory.append('gravy fries')
+    else:
+        print("You don't have any money")
+outside_nectars.buy_gravy_fries = buy_gravy_fries
 
-# main sequence
-display("""You find yourself on Church St. in Burlington, VT.
-There is a water fountain""")
+inside_nectars.title = "Inside Nectars. There's a band playing next to the round bar"
+inside_nectars.outside = outside_nectars
 
-only_accept('goto nectars')
-
-display('Nectars is closed but theres a window selling gravy Fries')
-
-only_accept('buy gravy fries')
-
-display('You dont have any money')
-
-only_accept('put soap in fountain')
-
-inventory.remove('soap')
-
-display("""The fountain erupts into a bubble bath
-Pople emerge from the alleys and bathe in the fountain
-It looks like many of them have left money in the fountain.""")
-
-only_accept('get money from fountain')
-
-inventory.append('money')
-
-display('You now have money')
-
-only_accept('buy gravy fries')
-inventory.remove('money')
-inventory.append('gravy fries')
-
-display("""You now have gravy fries""")
-
-print("You have completed phork 0.1")
+church_and_main.title = "You are at the intersection of Church St. and Main St."
+church_and_main.east = outside_nectars
+church_and_main.north = city_hall
+church_and_main.objects.append('soap')
 
 
+city_hall.title = "You are outside city hall. There is a fountain."
+city_hall.south = church_and_main
+def soap_in_fountain():
+    if 'soap' in inventory:
+        print("""
+The soap turns the fountain into a bubble bath.
+People emerge from the alley ways and jump into the fountain
+Some money falls our of their pockets as they are drying off""")
+        city_hall.objects.append("money")
+        inventory.remove("soap")
+city_hall.put_soap_in_fountain = soap_in_fountain
+
+def print_inventory():
+    print("you have", inventory)
+
+## Start outside nectars
+loc = outside_nectars
+
+## Main loop
+while True:
+    print(loc.title)
+    if len(loc.objects):
+        # M@ TODO MAKE THIS AS LOOP
+        print("There is", loc.objects[0], "on the ground")
+
+    c = input(":")
+    print()
+    
+    ## check for common commands
+    if c == "help":
+        print("There's no help... yet")
+        continue
+    
+    if c== "inventory":
+        print_inventory()
+        continue
+
+    ## Check for movement
+    if c[:3].lower() == 'go ':
+        if hasattr(loc, c[3:]):
+            print("Going",c[3:])
+            loc = getattr(loc, c[3:])
+        else:
+            print("I can't go in that direction")
+
+    ## Check for object
+    elif c[:4].lower() == 'get ':
+        o = c[4:].lower()
+        if o in loc.objects:
+            loc.objects.remove(o)
+            inventory.append(o)
+            print("You now have",o)
+        else:
+            print("There is no",o,"here")
+
+    ## Check for special commant
+
+    elif hasattr(loc, c.lower().replace(' ', '_')):
+        f = getattr(loc, c.lower().replace(' ', '_'))
+        f()
+
+    else:
+        print("I don't understand")
+
+    
